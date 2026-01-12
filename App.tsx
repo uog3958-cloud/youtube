@@ -12,7 +12,8 @@ import {
   ArrowPathIcon,
   DocumentTextIcon,
   FunnelIcon,
-  ClockIcon
+  ClockIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 const App: React.FC = () => {
@@ -55,7 +56,7 @@ const App: React.FC = () => {
 
   const handleAnalyze = async (video: VideoData) => {
     if (!geminiKey) {
-      alert('Gemini API 키가 필요합니다.');
+      alert('Gemini API 키가 필요합니다. 상단 설정에서 입력해주세요.');
       return;
     }
     setSelectedVideo(video);
@@ -98,14 +99,24 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <KeyIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+            <div className="relative flex-1 md:w-56">
+              <KeyIcon className="absolute left-3 top-2.5 w-4 h-4 text-red-400" />
               <input 
                 type="password"
-                placeholder="YouTube Data API Key"
-                className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-xs focus:ring-2 focus:ring-red-500"
+                placeholder="YouTube API Key"
+                className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-xs focus:ring-2 focus:ring-red-500 focus:bg-white transition"
                 value={youtubeKey}
                 onChange={(e) => setYoutubeKey(e.target.value)}
+              />
+            </div>
+            <div className="relative flex-1 md:w-56">
+              <SparklesIcon className="absolute left-3 top-2.5 w-4 h-4 text-blue-400" />
+              <input 
+                type="password"
+                placeholder="Gemini API Key"
+                className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
               />
             </div>
           </div>
@@ -176,6 +187,11 @@ const App: React.FC = () => {
               검색된 영상 ({filteredVideos.length})
             </h3>
             <div className="max-h-[800px] overflow-y-auto pr-2 space-y-4 scrollbar-hide">
+              {filteredVideos.length === 0 && !loading && (
+                <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center text-slate-400">
+                  검색 결과가 없습니다.
+                </div>
+              )}
               {filteredVideos.map((video) => (
                 <div 
                   key={video.id} 
