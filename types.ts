@@ -9,22 +9,23 @@ export interface VideoData {
   viewCount: number;
   subscriberCount: number;
   commentCount: number;
-  performanceRatio: number; // View count / Subscriber count
+  performanceRatio: number;
+  duration?: string; // ISO 8601
 }
 
 export interface AnalysisResult {
   topThemes: string[];
   audienceSentiment: string;
   improvementPoints: string[];
-  contentSuggestions: string[];
+  recommendedKeywords: string[]; // 5 keywords for selection
 }
 
-export interface AppState {
-  youtubeApiKey: string;
-  geminiApiKey: string;
-  searchQuery: string;
-  isLoading: boolean;
-  videos: VideoData[];
-  selectedVideo: VideoData | null;
-  analysis: AnalysisResult | null;
+export interface ScriptOutline {
+  title: string;
+  concept: string;
+  outline: {
+    intro: string;
+    body: string[];
+    outro: string;
+  };
 }

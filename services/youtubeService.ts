@@ -1,9 +1,14 @@
 
 import { VideoData } from '../types';
 
-export const fetchYouTubeVideos = async (query: string, apiKey: string): Promise<VideoData[]> => {
-  // 1. Search for videos
-  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&order=relevance&key=${apiKey}`;
+export const fetchYouTubeVideos = async (
+  query: string, 
+  apiKey: string, 
+  videoDuration: 'any' | 'short' | 'long' = 'any'
+): Promise<VideoData[]> => {
+  // 1. Search for videos with duration filter
+  // short: < 4min, long: > 20min
+  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&order=relevance&videoDuration=${videoDuration}&key=${apiKey}`;
   const searchRes = await fetch(searchUrl);
   const searchData = await searchRes.json();
 
@@ -12,13 +17,13 @@ export const fetchYouTubeVideos = async (query: string, apiKey: string): Promise
   const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
 
   // 2. Get video statistics
-  const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`;
+  const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet,contentDetails&id=${videoIds}&key=${apiKey}`;
   const statsRes = await fetch(statsUrl);
   const statsData = await statsRes.json();
 
   const channelIds = statsData.items.map((item: any) => item.snippet.channelId).join(',');
 
-  // 3. Get channel statistics (for subscriber counts)
+  // 3. Get channel statistics
   const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelIds}&key=${apiKey}`;
   const channelRes = await fetch(channelUrl);
   const channelData = await channelRes.json();
@@ -41,15 +46,20 @@ export const fetchYouTubeVideos = async (query: string, apiKey: string): Promise
       viewCount: views,
       subscriberCount: subscribers,
       commentCount: parseInt(item.statistics.commentCount) || 0,
-      performanceRatio: views / subscribers
+      performanceRatio: views / subscribers,
+      duration: item.contentDetails.duration
     };
   });
 };
 
 export const fetchComments = async (videoId: string, apiKey: string): Promise<string[]> => {
-  const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=50&textFormat=plainText&key=${apiKey}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!data.items) return [];
-  return data.items.map((item: any) => item.snippet.topLevelComment.snippet.textDisplay);
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=50&textFormat=plainText&key=${apiKey}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.items) return [];
+    return data.items.map((item: any) => item.snippet.topLevelComment.snippet.textDisplay);
+  } catch (e) {
+    return [];
+  }
 };
